@@ -8,9 +8,10 @@ import { UserModule } from './user/user.module';
 import { RestaurantModule } from './restaurants/restaurants.module'
 import { MenuModule } from './menu/menu.module'
 import { TableModule } from './tables/table.module'
+import { OrderModule } from './orders/order.module'
 
 @Module({
-  imports: [UserModule, AuthModule, PrismaModule, CloudinaryModule, RestaurantModule, MenuModule, TableModule],
+  imports: [UserModule, AuthModule, PrismaModule, CloudinaryModule, RestaurantModule, MenuModule, TableModule, OrderModule],
   controllers: [AppController],
   providers: [AppService],
 })

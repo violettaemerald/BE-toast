@@ -42,10 +42,10 @@ enum MenuStatus {
 }
 
 enum OrderStatus {
+  waiting_payment
   pending
   processing
   ready
-  paid
   completed
   cancelled
 }
