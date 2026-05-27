@@ -26,7 +26,9 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document, { swaggerOptions: { persistAuthorization: true },
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT || 3000; 
+
+  await app.listen(port, '0.0.0.0'); 
   console.log('API running at http://localhost:3000/toast');
   console.log('Swagger docs at http://localhost:3000/docs');
 }
