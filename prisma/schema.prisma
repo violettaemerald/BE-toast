@@ -158,6 +158,8 @@ model Order {
   status        OrderStatus   @default(pending)
   createdAt     DateTime      @default(now())
 
+  expiredAt DateTime?
+
   branch        Branch        @relation(fields: [branchId], references: [id])
   tableQr       TableQr       @relation(fields: [tableQrId], references: [id])
   orderItems    OrderItem[]
