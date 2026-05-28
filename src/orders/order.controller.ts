@@ -1,11 +1,21 @@
 // src/orders/orders.controller.ts
 import {
-  Controller, Get, Post, Patch,
-  Param, Body, Query, UseGuards, Request,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  Request,
 } from '@nestjs/common'
 import {
-  ApiTags, ApiOperation, ApiBearerAuth,
-  ApiParam, ApiQuery,
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger'
 import { OrderService } from './order.service'
 import { CreateOrderDto } from './dto/create-order.dto'
@@ -49,7 +59,11 @@ export class OrderController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'resto', 'cabang')
   @ApiOperation({ summary: 'List order masuk' })
-  @ApiQuery({ name: 'status', required: false, enum: ['pending', 'processing', 'ready', 'completed', 'cancelled'] })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['pending', 'processing', 'ready', 'completed', 'cancelled'],
+  })
   findAll (@Request() req, @Query('status') status?: string) {
     return this.ordersService.findAll(req.user, status)
   }
@@ -66,5 +80,19 @@ export class OrderController {
     @Request() req,
   ) {
     return this.ordersService.updateStatus(+id, dto, req.user)
+  }
+
+  @Get('store/:token/menus')
+  @ApiOperation({ summary: 'Lihat menu via QR token (guest)' })
+  @ApiParam({ name: 'token', type: 'string' })
+  @ApiQuery({ name: 'categoryId', required: false, type: Number })
+  async getMenusByToken (
+    @Param('token') token: string,
+    @Query('categoryId') categoryId?: string,
+  ) {
+    return this.ordersService.getMenuByToken(
+      token,
+      categoryId ? +categoryId : undefined,
+    )
   }
 }

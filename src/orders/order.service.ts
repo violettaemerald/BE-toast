@@ -8,7 +8,8 @@ import { PrismaService } from '../../prisma/prisma.service'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { Cron } from '@nestjs/schedule'
-import { stat } from 'fs'
+import { BranchStatus } from '@prisma/client'
+import { isAlpha } from 'class-validator'
 
 @Injectable()
 export class OrderService {
@@ -120,15 +121,22 @@ export class OrderService {
     const order = await this.prisma.order.findUnique({
       where: { id },
       select: {
-        id: true, status: true, grandTotal: true,
-        paymentMethod: true, paymentStatus: true,
-        tableNumber: true, guestName: true,
-        expiredAt: true, createdAt: true,
+        id: true,
+        status: true,
+        grandTotal: true,
+        paymentMethod: true,
+        paymentStatus: true,
+        tableNumber: true,
+        guestName: true,
+        expiredAt: true,
+        createdAt: true,
         qrCode: true,
         orderItems: {
           select: {
-            menuName: true, unitPrice: true,
-            quantity: true, subtotal: true,
+            menuName: true,
+            unitPrice: true,
+            quantity: true,
+            subtotal: true,
           },
         },
       },
@@ -176,8 +184,6 @@ export class OrderService {
       orderBy: { createdAt: 'desc' },
     })
   }
-
-  
 
   async updateStatus (
     id: number,
@@ -274,5 +280,55 @@ export class OrderService {
       },
       data: { status: 'cancelled' },
     })
+  }
+
+  async getMenuByToken (token: string, categoryId?: number) {
+    const table = await this.prisma.tableQr.findUnique({
+      where: { qrToken: token },
+      include: {
+        branch: {
+          include: { restaurant: true },
+        },
+      },
+    })
+
+    if (!table) throw new NotFoundException('QR tidak valid!')
+    if (!table.isActive) throw new BadRequestException('QR meja tidak aktif!')
+    if (table.branch.status === 'suspended')
+      throw new BadRequestException('Cabang sedang tutup!')
+    if (table.branch.restaurant.status === 'suspended')
+      throw new BadRequestException('Resto sedang tutup!')
+
+    const where: any = {
+      restaurantId: table.branch.restaurantId,
+      status: 'active',
+      isAvailable: true,
+    }
+    if (categoryId) where.categoryId = categoryId
+
+    const menus = await this.prisma.menu.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        imageUrl: true,
+        price: true,
+        extraFee: true,
+        extraFeeLabel: true,
+        category: { select: { id: true, name: true } },
+      },
+      orderBy: { name: 'asc' },
+    })
+
+    return {
+      table: {
+        id: table.id,
+        tableNumber: table.tableNumber,
+        branch: table.branch.name,
+        restaurant: table.branch.restaurant.name,
+      },
+      menus,
+    }
   }
 }

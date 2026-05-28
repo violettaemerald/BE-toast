@@ -14,7 +14,7 @@ import { CreateMenuDto } from './dto/create-menu.dto'
 import { UpdateMenuDto } from './dto/update-menu.dto'
 import { CreateCategoryDto } from './dto/create-category.dto'
 import { UpdateCategoryDto } from './dto/update-category.dto'
-import { UpdateStatusDto } from '../restaurants/dto/update-status.dto'
+import { UpdateMenuStatusDto } from './dto/update-menu-status.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
 import { Roles } from '../auth/decorators/roles.decorators'
@@ -108,7 +108,7 @@ export class MenuController {
   @ApiParam({ name: 'id', type: 'number' })
   updateMenuStatus (
     @Param('id') id: string,
-    @Body() dto: UpdateStatusDto,
+    @Body() dto: UpdateMenuStatusDto,
     @Request() req,
   ) {
     return this.menusService.updateMenuStatus(
