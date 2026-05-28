@@ -1,4 +1,0 @@
-[deploy]
-startCommand = "npx prisma migrate deploy && node dist/src/main"
-healthcheckPath = "/toast"
-healthcheckTimeout = 300
