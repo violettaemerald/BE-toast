@@ -9,6 +9,7 @@ import { CreateMenuDto } from './dto/create-menu.dto'
 import { UpdateMenuDto } from './dto/update-menu.dto'
 import { CreateCategoryDto } from './dto/create-category.dto'
 import { UpdateCategoryDto } from './dto/update-category.dto'
+import { doesNotReject } from 'assert';
 
 @Injectable()
 export class MenuService {
@@ -166,6 +167,17 @@ export class MenuService {
     if (requestingUser.role !== 'resto') {
       throw new ForbiddenException('Hanya resto yang bisa membuat menu!')
     }
+    if (dto.categoryId) {
+      const category = await this.prisma.category.findUnique({
+        where: { id: dto.categoryId},
+      })
+      
+      if (!category) throw new NotFoundException('Kategori tidak ditemukan!')
+      if (category.restaurantId !== requestingUser.restaurantId) {
+        throw new ForbiddenException('Kategori ini bukan milik restoran anda!')
+      }
+    }
+
     const menu = await this.prisma.menu.create({
       data: {
         name: dto.name,
@@ -189,11 +201,25 @@ export class MenuService {
       },
     })
 
-    return { message: 'Menu berhasil dibuat, pendinga pproval admin...' }
+    return {
+      data: menu,
+      message: 'Menu berhasil dibuat, pendinga pproval admin...',
+    }
   }
 
   async updateMenu (id: number, dto: UpdateMenuDto, requestingUser: any) {
     await this.findOneMenu(id, requestingUser)
+
+    if (dto.categoryId) {
+      const category = await this.prisma.category.findUnique({
+        where: { id: dto.categoryId},
+      })
+      
+      if (!category) throw new NotFoundException('Kategori tidak ditemukan!')
+      if (category.restaurantId !== requestingUser.restaurantId) {
+        throw new ForbiddenException('Kategori ini bukan milik restoran anda!')
+      }
+    }
 
     const updated = await this.prisma.menu.update({
       where: { id },
@@ -289,8 +315,8 @@ export class MenuService {
   async removeMenu (id: number, requestingUser: any) {
     await this.findOneMenu(id, requestingUser)
 
-    await this.prisma.menu.delete({ where: { id }})
+    await this.prisma.menu.delete({ where: { id } })
 
-    return { message: 'Menu berhasil dihapus!'}
+    return { message: 'Menu berhasil dihapus!' }
   }
 }
