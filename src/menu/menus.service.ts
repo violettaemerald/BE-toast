@@ -10,6 +10,7 @@ import { UpdateMenuDto } from './dto/update-menu.dto'
 import { CreateCategoryDto } from './dto/create-category.dto'
 import { UpdateCategoryDto } from './dto/update-category.dto'
 import { doesNotReject } from 'assert';
+import { TableController } from '../tables/table.controller';
 
 @Injectable()
 export class MenuService {
@@ -104,7 +105,7 @@ export class MenuService {
 
   //menu
 
-  async findAllMenus (requestingUser: any, categoryId?: number) {
+  async findAllMenus (token: string, requestingUser: any, categoryId?: number) {
     const where: any = {}
 
     if (requestingUser.role === 'admin') {
