@@ -36,27 +36,27 @@ export class MenuController {
   @ApiOperation({ summary: 'List semua kategori' })
   @ApiQuery({ name: 'categoryId', required: false, type: Number })
   findAllCategories (@Request() req) {
-    return this.menusService.findAllCategories(req.user)
+    return this.menusService.findAllCategories()
   }
 
-  @Post('categories')
-  @Roles('resto')
-  @ApiOperation({ summary: 'Buat kategori baru' })
-  createCategory (@Body() dto: CreateCategoryDto, @Request() req) {
-    return this.menusService.createCategory(dto, req.user)
-  }
+  // @Post('categories')
+  // @Roles('resto')
+  // @ApiOperation({ summary: 'Buat kategori baru' })
+  // createCategory (@Body() dto: CreateCategoryDto, @Request() req) {
+  //   return this.menusService.createCategory(dto, req.user)
+  // }
 
-  @Patch('categories/:id')
-  @Roles('admin', 'resto')
-  @ApiOperation({ summary: 'Update kategori' })
-  @ApiParam({ name: 'id', type: 'number' })
-  updateCategory (
-    @Param('id') id: string,
-    @Body() dto: UpdateCategoryDto,
-    @Request() req,
-  ) {
-    return this.menusService.updateCategory(+id, dto, req.user)
-  }
+  // @Patch('categories/:id')
+  // @Roles('admin', 'resto')
+  // @ApiOperation({ summary: 'Update kategori' })
+  // @ApiParam({ name: 'id', type: 'number' })
+  // updateCategory (
+  //   @Param('id') id: string,
+  //   @Body() dto: UpdateCategoryDto,
+  //   @Request() req,
+  // ) {
+  //   return this.menusService.updateCategory(+id, dto, req.user)
+  // }
 
   @Delete('categories/:id')
   @Roles('admin', 'resto')

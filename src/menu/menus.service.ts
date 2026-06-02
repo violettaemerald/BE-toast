@@ -9,74 +9,79 @@ import { CreateMenuDto } from './dto/create-menu.dto'
 import { UpdateMenuDto } from './dto/update-menu.dto'
 import { CreateCategoryDto } from './dto/create-category.dto'
 import { UpdateCategoryDto } from './dto/update-category.dto'
-import { doesNotReject } from 'assert';
 import { TableController } from '../tables/table.controller';
 
 @Injectable()
 export class MenuService {
   constructor (private prisma: PrismaService) {}
 
-  async findAllCategories (requestingUser: any) {
-    const where =
-      requestingUser.role === 'admin'
-        ? {}
-        : { restaurantId: requestingUser.restaurantId }
-
+  async findAllCategories () {
     return this.prisma.category.findMany({
-      where,
-      select: {
-        id: true,
-        name: true,
-        sortOrder: true,
-        _count: { select: { menus: true } },
-      },
+    select: {
+      id: true, name: true, sortOrder: true,
+    },
+    orderBy: { sortOrder: 'asc' },
+  })
+    // const where =
+    //   requestingUser.role === 'admin'
+    //     ? {}
+    //     : { restaurantId: requestingUser.restaurantId }
 
-      orderBy: { sortOrder: 'asc' },
-    })
+    // return this.prisma.category.findMany({
+    //   where,
+    //   select: {
+    //     id: true,
+    //     name: true,
+    //     sortOrder: true,
+    //     _count: { select: { menus: true } },
+    //   },
+
+    //   orderBy: { sortOrder: 'asc' },
+    // })
   }
 
-  async createCategory (dto: CreateCategoryDto, requestingUser: any) {
-    if (requestingUser.role !== 'resto') {
-      throw new ForbiddenException('Hanya resto yang bisa membuat kategori!')
-    }
+  // async createCategory (dto: CreateCategoryDto, requestingUser: any) {
+  //   if (requestingUser.role !== 'resto') {
+  //     throw new ForbiddenException('Hanya resto yang bisa membuat kategori!')
+  //   }
 
-    const category = await this.prisma.category.create({
-      data: {
-        name: dto.name,
-        sortOrder: dto.sortOrder ?? 0,
-        restaurantId: requestingUser.restaurantId,
-      },
-      select: { id: true, name: true, sortOrder: true },
-    })
+  //   const category = await this.prisma.category.create({
+  //     data: {
+  //       name: dto.name,
+  //       sortOrder: dto.sortOrder ?? 0,
+  //       restaurantId: requestingUser.restaurantId,
+  //     },
+  //     select: { id: true, name: true, sortOrder: true },
+  //   })
 
-    return { message: 'kategori berhasil dibuat!', ...category }
-  }
+  //   return { message: 'kategori berhasil dibuat!', ...category }
+  // }
 
-  async updateCategory (
-    id: number,
-    dto: UpdateCategoryDto,
-    requestingUser: any,
-  ) {
-    const category = await this.prisma.category.findUnique({ where: { id } })
-    if (!category) {
-      throw new NotFoundException('Kategori tidak ditemukan!')
-    }
+  // async updateCategory (
+  //   id: number,
+  //   dto: UpdateCategoryDto,
+  //   requestingUser: any,
+  // ) {
+  //   const category = await this.prisma.category.findUnique({ where: { id } })
+  //   if (!category) {
+  //     throw new NotFoundException('Kategori tidak ditemukan!')
+  //   }
 
-    if (
-      requestingUser.role === 'resto' &&
-      category.restaurantId !== requestingUser.restaurantId
-    ) {
-      throw new ForbiddenException('Tidak punya akses ke kategori ini!')
-    }
+  //   // if (
+  //   //   requestingUser.role === 'resto' &&
+  //   //   category.restaurantId !== requestingUser.restaurantId
+  //   // ) {
+  //   //   throw new ForbiddenException('Tidak punya akses ke kategori ini!')
+  //   // }
 
-    const updated = await this.prisma.category.update({
-      where: { id },
-      data: { name: dto.name, sortOrder: dto.sortOrder },
-      select: { id: true, name: true, sortOrder: true },
-    })
+  //   const updated = await this.prisma.category.update({
+  //     where: { id },
+  //     data: { name: dto.name, sortOrder: dto.sortOrder },
+  //     select: { id: true, name: true, sortOrder: true },
+  //   })
 
-    return { message: 'Kategori berhasil diupdate!', ...updated }
-  }
+  //   return { message: 'Kategori berhasil diupdate!', ...updated }
+  // }
 
   async removeCategory (id: number, requestingUser: any) {
     const category = await this.prisma.category.findUnique({
@@ -92,12 +97,12 @@ export class MenuService {
       throw new BadRequestException('Kategori masih memiliki menu!')
     }
 
-    if (
-      requestingUser.role == 'resto' &&
-      category.restaurantId !== requestingUser.restaurantId
-    ) {
-      throw new ForbiddenException('Tidak punya akses ke kategori ini!')
-    }
+    // if (
+    //   requestingUser.role == 'resto' &&
+    //   category.restaurantId !== requestingUser.restaurantId
+    // ) {
+    //   throw new ForbiddenException('Tidak punya akses ke kategori ini!')
+    // }
 
     await this.prisma.category.delete({ where: { id } })
     return { message: 'kategori berhasil dihapus!' }
@@ -174,9 +179,9 @@ export class MenuService {
       })
       
       if (!category) throw new NotFoundException('Kategori tidak ditemukan!')
-      if (category.restaurantId !== requestingUser.restaurantId) {
-        throw new ForbiddenException('Kategori ini bukan milik restoran anda!')
-      }
+      // if (category.restaurantId !== requestingUser.restaurantId) {
+      //   throw new ForbiddenException('Kategori ini bukan milik restoran anda!')
+      // }
     }
 
     const menu = await this.prisma.menu.create({
@@ -217,9 +222,9 @@ export class MenuService {
       })
       
       if (!category) throw new NotFoundException('Kategori tidak ditemukan!')
-      if (category.restaurantId !== requestingUser.restaurantId) {
-        throw new ForbiddenException('Kategori ini bukan milik restoran anda!')
-      }
+      // if (category.restaurantId !== requestingUser.restaurantId) {
+      //   throw new ForbiddenException('Kategori ini bukan milik restoran anda!')
+      // }
     }
 
     const updated = await this.prisma.menu.update({

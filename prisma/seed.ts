@@ -18,7 +18,25 @@ async function main() {
     },
   });
 
+  const categories = [
+  { name: 'Makanan', sortOrder: 1 },
+  { name: 'Minuman', sortOrder: 2 },
+  { name: 'Dessert', sortOrder: 3 },
+  { name: 'Snack',   sortOrder: 4 },
+  { name: 'Paket',   sortOrder: 5 },
+  { name: 'Lainnya', sortOrder: 6 },
+]
+
+for (const cat of categories) {
+  await prisma.category.upsert({
+    where:  { id: cat.sortOrder },
+    update: {},
+    create: cat,
+  })
+}
+
   console.log('Admin seeded!');
+  console.log('Menu seeded!');
 }
 
 main()
