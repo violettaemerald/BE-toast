@@ -58,13 +58,13 @@ export class MenuController {
   //   return this.menusService.updateCategory(+id, dto, req.user)
   // }
 
-  @Delete('categories/:id')
-  @Roles('admin', 'resto')
-  @ApiOperation({ summary: 'Hapus kategori' })
-  @ApiParam({ name: 'id', type: 'number' })
-  removeCategory (@Param('id') id: string, @Request() req) {
-    return this.menusService.removeCategory(+id, req.user)
-  }
+  // @Delete('categories/:id')
+  // @Roles('admin', 'resto')
+  // @ApiOperation({ summary: 'Hapus kategori' })
+  // @ApiParam({ name: 'id', type: 'number' })
+  // removeCategory (@Param('id') id: string, @Request() req) {
+  //   return this.menusService.removeCategory(+id, req.user)
+  // }
 
 
   @Get('menus')
