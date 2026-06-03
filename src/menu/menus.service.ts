@@ -83,30 +83,34 @@ export class MenuService {
   //   return { message: 'Kategori berhasil diupdate!', ...updated }
   // }
 
-  async removeCategory (id: number, requestingUser: any) {
-    const category = await this.prisma.category.findUnique({
-      where: { id },
-      include: { _count: { select: { menus: true } } },
-    })
+  
 
-    if (!category) {
-      throw new NotFoundException('Kategori tidak ditemukan!')
-    }
 
-    if (category._count.menus > 0) {
-      throw new BadRequestException('Kategori masih memiliki menu!')
-    }
 
-    // if (
-    //   requestingUser.role == 'resto' &&
-    //   category.restaurantId !== requestingUser.restaurantId
-    // ) {
-    //   throw new ForbiddenException('Tidak punya akses ke kategori ini!')
-    // }
+  // async removeCategory (id: number, requestingUser: any) {
+  //   const category = await this.prisma.category.findUnique({
+  //     where: { id },
+  //     include: { _count: { select: { menus: true } } },
+  //   })
 
-    await this.prisma.category.delete({ where: { id } })
-    return { message: 'kategori berhasil dihapus!' }
-  }
+  //   if (!category) {
+  //     throw new NotFoundException('Kategori tidak ditemukan!')
+  //   }
+
+  //   if (category._count.menus > 0) {
+  //     throw new BadRequestException('Kategori masih memiliki menu!')
+  //   }
+
+  //   // if (
+  //   //   requestingUser.role == 'resto' &&
+  //   //   category.restaurantId !== requestingUser.restaurantId
+  //   // ) {
+  //   //   throw new ForbiddenException('Tidak punya akses ke kategori ini!')
+  //   // }
+
+  //   await this.prisma.category.delete({ where: { id } })
+  //   return { message: 'kategori berhasil dihapus!' }
+  // }
 
   //menu
 
@@ -179,22 +183,23 @@ export class MenuService {
       })
       
       if (!category) throw new NotFoundException('Kategori tidak ditemukan!')
-      // if (category.restaurantId !== requestingUser.restaurantId) {
-      //   throw new ForbiddenException('Kategori ini bukan milik restoran anda!')
-      // }
     }
 
-    const menu = await this.prisma.menu.create({
-      data: {
+    const MenuData: any = {
         name: dto.name,
         description: dto.description ?? null,
         price: dto.price,
         extraFee: dto.extraFee ?? 0,
         extraFeeLabel: dto.extraFeeLabel ?? null,
-        categoryId: dto.categoryId ?? null,
         restaurantId: requestingUser.restaurantId,
         status: 'pending',
-      },
+      }
+    if (dto.categoryId) {
+  Object.assign(MenuData, { categoryId: dto.categoryId })
+}
+
+    const menu = await this.prisma.menu.create({
+      data: MenuData,
       select: {
         id: true,
         name: true,
@@ -207,9 +212,10 @@ export class MenuService {
       },
     })
 
+    
     return {
       data: menu,
-      message: 'Menu berhasil dibuat, pendinga pproval admin...',
+      message: 'Menu berhasil dibuat, pending approval admin...',
     }
   }
 
