@@ -173,7 +173,7 @@ export class MenuService {
     return menu
   }
 
-  async createMenu (dto: CreateMenuDto, requestingUser: any) {
+  async createMenu (dto: CreateMenuDto, requestingUser: any, imageUrl: string) {
     if (requestingUser.role !== 'resto') {
       throw new ForbiddenException('Hanya resto yang bisa membuat menu!')
     }
@@ -192,6 +192,7 @@ export class MenuService {
         extraFee: dto.extraFee ?? 0,
         extraFeeLabel: dto.extraFeeLabel ?? null,
         restaurantId: requestingUser.restaurantId,
+        imageUrl,
         status: 'pending',
       }
     if (dto.categoryId) {
@@ -207,6 +208,7 @@ export class MenuService {
         price: true,
         extraFee: true,
         extraFeeLabel: true,
+        imageUrl: true,
         status: true,
         createdAt: true,
       },

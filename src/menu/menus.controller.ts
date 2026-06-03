@@ -1,11 +1,27 @@
 import {
-  Controller, Get, Post, Patch, Delete,
-  Param, Body, Query, UseGuards, Request,
-  UploadedFile, UseInterceptors, BadRequestException,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  Request,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
+  Req,
 } from '@nestjs/common'
 import {
-  ApiTags, ApiOperation, ApiBearerAuth,
-  ApiParam, ApiQuery, ApiConsumes,
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
+  ApiConsumes,
+  ApiBody,
 } from '@nestjs/swagger'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { memoryStorage } from 'multer'
@@ -19,6 +35,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
 import { Roles } from '../auth/decorators/roles.decorators'
 import { CloudinaryService } from '../cloudinary/cloudinary.service'
+import { BADQUERY } from 'dns';
 
 @ApiTags('Menus & Categories')
 @ApiBearerAuth('access-token')
@@ -29,7 +46,6 @@ export class MenuController {
     private menusService: MenuService,
     private cloudinaryService: CloudinaryService,
   ) {}
-
 
   @Get('categories')
   @Roles('admin', 'resto', 'cabang')
@@ -66,13 +82,15 @@ export class MenuController {
   //   return this.menusService.removeCategory(+id, req.user)
   // }
 
-
   @Get('menus')
   @Roles('admin', 'resto', 'cabang')
   @ApiOperation({ summary: 'List semua menu' })
   @ApiQuery({ name: 'categoryId', required: false, type: Number })
   findAllMenus (@Request() req, @Query('categoryId') categoryId?: string) {
-    return this.menusService.findAllMenus(req.user, categoryId ? +categoryId : undefined)
+    return this.menusService.findAllMenus(
+      req.user,
+      categoryId ? +categoryId : undefined,
+    )
   }
 
   @Get('menus/:id')
@@ -85,9 +103,44 @@ export class MenuController {
 
   @Post('menus')
   @Roles('resto')
-  @ApiOperation({ summary: 'Buat menu baru (status: pending, nunggu approve admin)' })
-  createMenu (@Body() dto: CreateMenuDto, @Request() req) {
-    return this.menusService.createMenu(dto, req.user)
+  @ApiOperation({
+    summary:
+      'Buat menu baru + wajib foto (status: pending, nunggu approve admin)',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['name', 'price', 'image'],
+      properties: {
+        name: { type: 'string', example: 'Mie Goreng' },
+        description: { type: 'string', example: 'Mie goreng spesial' },
+        price: { type: 'number', example: 15000 },
+        extraFee: { type: 'number', example: 500 },
+        extraFeeLabel: { type: 'string', example: 'Biaya kemasan' },
+        categoryId: { type: 'number', example: 1 },
+        image: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (req, file, cb) => {
+        const allowed = ['image/jpeg', 'image/png', 'image/webp']
+        cb(null, allowed.includes(file.mimetype))
+      },
+    }),
+  )
+  async createMenu(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: CreateMenuDto,
+    @Request() req,
+  ) {
+    if (!file) throw new BadRequestException('Foto menu wajib diupload!')
+    const imageUrl = await this.cloudinaryService.upload(file, 'menus')
+    return this.menusService.createMenu(dto, req.user, imageUrl)
   }
 
   @Patch('menus/:id')
@@ -131,14 +184,16 @@ export class MenuController {
   @ApiOperation({ summary: 'Upload foto menu' })
   @ApiConsumes('multipart/form-data')
   @ApiParam({ name: 'id', type: 'number' })
-  @UseInterceptors(FileInterceptor('image', {
-    storage: memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-      const allowed = ['image/jpeg', 'image/png', 'image/webp']
-      cb(null, allowed.includes(file.mimetype))
-    },
-  }))
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (req, file, cb) => {
+        const allowed = ['image/jpeg', 'image/png', 'image/webp']
+        cb(null, allowed.includes(file.mimetype))
+      },
+    }),
+  )
   async uploadMenuImage (
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
