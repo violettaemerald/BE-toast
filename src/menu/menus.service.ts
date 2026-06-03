@@ -114,7 +114,7 @@ export class MenuService {
 
   //menu
 
-  async findAllMenus (token: string, requestingUser: any, categoryId?: number) {
+  async findAllMenus (requestingUser: any, categoryId?: number) {
     const where: any = {}
 
     if (requestingUser.role === 'admin') {
@@ -221,7 +221,7 @@ export class MenuService {
     }
   }
 
-  async updateMenu (id: number, dto: UpdateMenuDto, requestingUser: any) {
+  async updateMenu (id: number, dto: UpdateMenuDto, requestingUser: any, imageUrl?: string) {
     await this.findOneMenu(id, requestingUser)
 
     if (dto.categoryId) {
@@ -230,9 +230,6 @@ export class MenuService {
       })
       
       if (!category) throw new NotFoundException('Kategori tidak ditemukan!')
-      // if (category.restaurantId !== requestingUser.restaurantId) {
-      //   throw new ForbiddenException('Kategori ini bukan milik restoran anda!')
-      // }
     }
 
     const updated = await this.prisma.menu.update({
@@ -244,11 +241,13 @@ export class MenuService {
         extraFee: dto.extraFee,
         extraFeeLabel: dto.extraFeeLabel,
         categoryId: dto.categoryId,
+        ...(imageUrl && { imageUrl }),
       },
       select: {
         id: true,
         name: true,
         description: true,
+        imageUrl: true,
         price: true,
         extraFee: true,
         extraFeeLabel: true,
@@ -314,17 +313,17 @@ export class MenuService {
     }
   }
 
-  async updateMenuImage (id: number, url: string, requestingUser: any) {
-    await this.findOneMenu(id, requestingUser)
+  // async updateMenuImage (id: number, url: string, requestingUser: any) {
+  //   await this.findOneMenu(id, requestingUser)
 
-    const updated = await this.prisma.menu.update({
-      where: { id },
-      data: { imageUrl: url },
-      select: { id: true, name: true, imageUrl: true },
-    })
+  //   const updated = await this.prisma.menu.update({
+  //     where: { id },
+  //     data: { imageUrl: url },
+  //     select: { id: true, name: true, imageUrl: true },
+  //   })
 
-    return { message: 'Foto menu berhasil diupload!', ...updated }
-  }
+  //   return { message: 'Foto menu berhasil diupload!', ...updated }
+  // }
 
   async removeMenu (id: number, requestingUser: any) {
     await this.findOneMenu(id, requestingUser)

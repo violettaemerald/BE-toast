@@ -145,15 +145,45 @@ export class MenuController {
 
   @Patch('menus/:id')
   @Roles('admin', 'resto')
-  @ApiOperation({ summary: 'Update data menu' })
-  @ApiParam({ name: 'id', type: 'number' })
-  updateMenu (
-    @Param('id') id: string,
-    @Body() dto: UpdateMenuDto,
-    @Request() req,
-  ) {
-    return this.menusService.updateMenu(+id, dto, req.user)
+  @ApiOperation({ summary: 'Update menu (foto opsional)' })
+@ApiConsumes('multipart/form-data')
+@ApiBody({
+  schema: {
+    type: 'object',
+    properties: {
+      name:          { type: 'string' },
+      description:   { type: 'string' },
+      price:         { type: 'number' },
+      extraFee:      { type: 'number' },
+      extraFeeLabel: { type: 'string' },
+      categoryId:    { type: 'number' },
+      image:         { type: 'string', format: 'binary' }, 
+    },
+  },
+})
+@ApiParam({ name: 'id', type: 'number' })
+@UseInterceptors(FileInterceptor('image', {
+  storage: memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp']
+    cb(null, allowed.includes(file.mimetype))
+  },
+}))
+async updateMenu(
+  @Param('id') id: string,
+  @UploadedFile() file: Express.Multer.File,
+  @Body() dto: UpdateMenuDto,
+  @Request() req,
+) {
+  let imageUrl: string | undefined = undefined
+
+  if (file) {
+    imageUrl = await this.cloudinaryService.upload(file, 'menus')
   }
+
+  return this.menusService.updateMenu(+id, dto, req.user, imageUrl)
+}
 
   @Patch('menus/:id/status')
   @Roles('admin')
@@ -179,30 +209,30 @@ export class MenuController {
     return this.menusService.toggleAvailability(+id, req.user)
   }
 
-  @Patch('menus/:id/image')
-  @Roles('resto')
-  @ApiOperation({ summary: 'Upload foto menu' })
-  @ApiConsumes('multipart/form-data')
-  @ApiParam({ name: 'id', type: 'number' })
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: memoryStorage(),
-      limits: { fileSize: 5 * 1024 * 1024 },
-      fileFilter: (req, file, cb) => {
-        const allowed = ['image/jpeg', 'image/png', 'image/webp']
-        cb(null, allowed.includes(file.mimetype))
-      },
-    }),
-  )
-  async uploadMenuImage (
-    @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File,
-    @Request() req,
-  ) {
-    if (!file) throw new BadRequestException('File tidak ditemukan!')
-    const url = await this.cloudinaryService.upload(file, 'menus')
-    return this.menusService.updateMenuImage(+id, url, req.user)
-  }
+  // @Patch('menus/:id/image')
+  // @Roles('resto')
+  // @ApiOperation({ summary: 'Upload foto menu' })
+  // @ApiConsumes('multipart/form-data')
+  // @ApiParam({ name: 'id', type: 'number' })
+  // @UseInterceptors(
+  //   FileInterceptor('image', {
+  //     storage: memoryStorage(),
+  //     limits: { fileSize: 5 * 1024 * 1024 },
+  //     fileFilter: (req, file, cb) => {
+  //       const allowed = ['image/jpeg', 'image/png', 'image/webp']
+  //       cb(null, allowed.includes(file.mimetype))
+  //     },
+  //   }),
+  // )
+  // async uploadMenuImage (
+  //   @Param('id') id: string,
+  //   @UploadedFile() file: Express.Multer.File,
+  //   @Request() req,
+  // ) {
+  //   if (!file) throw new BadRequestException('File tidak ditemukan!')
+  //   const url = await this.cloudinaryService.upload(file, 'menus')
+  //   return this.menusService.updateMenuImage(+id, url, req.user)
+  // }
 
   @Delete('menus/:id')
   @Roles('admin', 'resto')
