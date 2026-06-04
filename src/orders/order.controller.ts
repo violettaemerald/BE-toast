@@ -85,13 +85,16 @@ export class OrderController {
   @ApiOperation({ summary: 'Lihat menu via QR token (guest)' })
   @ApiParam({ name: 'token', type: 'string' })
   @ApiQuery({ name: 'categoryId', required: false, type: Number })
+  @ApiQuery({ name: 'keyword', required: false, type: String })
   async getMenusByToken (
     @Param('token') token: string,
     @Query('categoryId') categoryId?: string,
+    @Query('keyword') keyword?: string,
   ) {
     return this.ordersService.getMenuByToken(
       token,
       categoryId ? +categoryId : undefined,
+      keyword,
     )
   }
 }

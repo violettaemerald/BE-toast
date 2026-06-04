@@ -282,7 +282,7 @@ export class OrderService {
     })
   }
 
-  async getMenuByToken (token: string, categoryId?: number) {
+  async getMenuByToken (token: string, categoryId?: number, keyword?: string) {
     const table = await this.prisma.tableQr.findUnique({
       where: { qrToken: token },
       include: {
@@ -305,6 +305,13 @@ export class OrderService {
       isAvailable: true,
     }
     if (categoryId) where.categoryId = categoryId
+
+    if (keyword) {
+      where.OR = [
+        {name: { contains: keyword, mode: 'insensitive'}},
+        {description: { contains: keyword, mode: 'insensitive'}},
+      ]
+    }
 
     const menus = await this.prisma.menu.findMany({
       where,

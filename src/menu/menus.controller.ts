@@ -86,10 +86,12 @@ export class MenuController {
   @Roles('admin', 'resto', 'cabang')
   @ApiOperation({ summary: 'List semua menu' })
   @ApiQuery({ name: 'categoryId', required: false, type: Number })
-  findAllMenus (@Request() req, @Query('categoryId') categoryId?: string) {
+  @ApiQuery({ name: 'keyword', required: false, type: String })
+  findAllMenus (@Request() req, @Query('categoryId') categoryId?: string, @Query('keyword') keyword?: string,) {
     return this.menusService.findAllMenus(
       req.user,
       categoryId ? +categoryId : undefined,
+      keyword,
     )
   }
 

@@ -114,7 +114,7 @@ export class MenuService {
 
   //menu
 
-  async findAllMenus (requestingUser: any, categoryId?: number) {
+  async findAllMenus (requestingUser: any, categoryId?: number, keyword?: string) {
     const where: any = {}
 
     if (requestingUser.role === 'admin') {
@@ -122,6 +122,13 @@ export class MenuService {
     } else {
       where.restaurantId = requestingUser.restaurantId
       if (categoryId) where.categoryId = categoryId
+    }
+
+    if (keyword) {
+      where.OR = [
+        {name: { contains: keyword, mode: 'insensitive'}},
+        {description: { contains: keyword, mode: 'insensitive'}},
+      ]
     }
 
     return this.prisma.menu.findMany({
